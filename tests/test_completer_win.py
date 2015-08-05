@@ -1,12 +1,11 @@
 """Tests the xonsh lexer."""
 from __future__ import unicode_literals, print_function
 import os
-from contextlib 
+import contextlib 
 import tempfile
 
 
 
-import nose
 from nose.tools import assert_equal, assert_true, assert_false
 from xonsh.completer import Completer
 from xonsh import built_ins
@@ -53,13 +52,17 @@ if ON_WINDOWS:
 
 
 def cmplwrap( prefix, line, begidx, endidx):
+    """ Expand the prefix backwards on the line to the first
+        quote character (",') found, and change begidx accordingly """
     quote_idxs = map(line[0:begidx].rfind, ('"',"'"))
     if quote_idxs:
         begidx = max(quote_idxs)
+    
     prefix = line[begidx:endidx+1]
     return (prefix, line, begidx, endidx)
     
 
 if __name__ == '__main__':
     
-    nose.runmodule()
+    test_complete1()
+    test_complete2()
