@@ -9,6 +9,7 @@ import tempfile
 from nose.tools import assert_equal, assert_true, assert_false
 from xonsh.completer import Completer
 from xonsh import built_ins
+from xonsh.completer import _normpath
 
 built_ins.load_builtins()
 
@@ -29,9 +30,25 @@ def setup_test_dir():
 
 if ON_WINDOWS:
     
+    def test_complete3():
+        with setup_test_dir():
+            cmpl = Completer()
+            args = ('', "",0,0)
+            cmpl_list = cmpl.complete(*args)
+            d = len(cmpl_list)
+            
+    
+    
+    
     def test_complete1():
         with setup_test_dir():
             cmpl = Completer()
+            args = ('', "cd ",3,3)
+            cmpl_list = cmpl.complete(*args)
+            assert_equal(cmpl_list[0], "'Folder WITH Spaces\\'")
+            assert_equal(cmpl_list[1], "'..\\'")
+            assert_equal(cmpl_list[2], "'.\\'")
+            
             args = ('folder', "cd folder",3,8)
             cmpl_list = cmpl.complete(*args)
             assert_equal(cmpl_list[0], "'Folder WITH Spaces\\'")
@@ -63,7 +80,7 @@ if ON_WINDOWS:
 
 if __name__ == '__main__':
     
-    
+    test_complete3()
     
     test_complete1()
     test_complete2()
