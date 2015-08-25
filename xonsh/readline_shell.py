@@ -46,6 +46,11 @@ def setup_readline():
     readline.parse_and_bind('"\e[A": history-search-backward')
     # Setup Shift-Tab to indent
     readline.parse_and_bind('"\e[Z": "{0}"'.format(env.get('INDENT', '')))
+    #import pdb; pdb.set_trace()
+    readline.parse_and_bind('completion-query-items: 100' )
+    #RL_COMPLETION_QUERY_ITEMS = ctypes.c_int.in_dll(
+    #            lib, 'rl_completion-query-items')
+    #RL_COMPLETION_QUERY_ITEMS.val = 100            
 
     # handle tab completion differences found in libedit readline compatibility
     # as discussed at http://stackoverflow.com/a/7116997
