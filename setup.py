@@ -147,11 +147,11 @@ def main():
             'pygments.lexers': ['xonsh = xonsh.pyghooks:XonshLexer',
                                 'xonshcon = xonsh.pyghooks:XonshConsoleLexer',
                                ],
-            'console_scripts': ['xonsh = xonsh.main:main'],
+            #'console_scripts': ['xonsh = xonsh.main:main'],
             }
         skw['cmdclass']['develop'] = xdevelop
     else:
-        skw['scripts'] = ['scripts/xonsh'] if 'win' not in sys.platform else ['scripts/xonsh.bat'],
+        pass#skw['scripts'] = ['scripts/xonsh'] if 'win' not in sys.platform else ['scripts/xonsh.bat'],
 
     setup(**skw)
 
