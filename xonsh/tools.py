@@ -1639,16 +1639,47 @@ def _get_color_indexes(style_map):
             yield token, index, rgb
 
 
-def intensify_colors_for_cmd_exe(style_map, replace_colors=None):
+def _win10_color_map():
+    cmap = {
+        "#ansiblack": (12,12,12),
+        "#ansidarkblue": (0,55,218),
+        "#ansidarkgreen": (19,161,14),
+        "#ansiteal": (58,150,221),
+        "#ansidarkred": (197,15,31),
+        '#ansipurple': (136,23,152),
+        '#ansibrown': (193,156,0),
+        '#ansilightgray': (204,204,204),
+        '#ansidarkgray': (118,118,118),
+        '#ansiblue': (59,120,255),
+        '#ansigreen': (22,198,12),
+        '#ansiturquoise': (97,214,214),
+        '#ansired': (231,72,86),
+        '#ansifuchsia': (180,0,158),
+        '#ansiyellow': (249,241,165),
+        '#ansiwhite': (242,242,242),
+    }
+    return {
+        k: "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
+        for k, (r, g, b) in cmap.items()
+    }
+
+WIN10_COLOR_MAP = LazyObject(_win10_color_map, globals(), 'WIN10_COLOR_MAP')
+
+
+
+def intensify_colors_for_cmd_exe(style_map):
     """Returns a modified style to where colors that maps to dark
-       colors are replaced with brighter versions. Also expands the
-       range used by the gray colors
+       colors are replaced with brighter versions.
     """
     modified_style = {}
-    stype = builtins.__xonsh_env__.get('SHELL_TYPE')
-    if (not ON_WINDOWS or 'prompt_toolkit' not in stype):
-        return modified_style
-    if replace_colors is None:
+    if win_ansi_support():
+        # Hard code all colors to avoid unreadble 
+        # default colors in conhost
+        for token, sval in style_map.items():
+            for name, hexcolor in WIN10_COLOR_MAP.items():
+                sval = sval.replace(name, hexcolor)
+            modified_style[token] = sval.replace(name, hexcolor)
+    else:
         replace_colors = {
             1: '#ansiturquoise',  # subst blue with bright cyan
             2: '#ansigreen',      # subst green with bright green
@@ -1656,11 +1687,11 @@ def intensify_colors_for_cmd_exe(style_map, replace_colors=None):
             5: '#ansifuchsia',    # subst magenta with bright magenta
             6: '#ansiyellow',     # subst yellow with bright yellow
             9: '#ansiteal',       # subst intense blue (hard to read)
-                                    # with dark cyan (which is readable)
+                                # with dark cyan (which is readable)
         }
-    for token, idx, _ in _get_color_indexes(style_map):
-        if idx in replace_colors:
-            modified_style[token] = replace_colors[idx]
+        for token, idx, _ in _get_color_indexes(style_map):
+            if idx in replace_colors:
+                modified_style[token] = replace_colors[idx]
     return modified_style
 
 
@@ -1670,6 +1701,7 @@ def intensify_colors_on_win_setter(enable):
     """
     enable = to_bool(enable)
     if hasattr(builtins, '__xonsh_shell__'):
+        builtins.__xonsh_shell__.shell.styler.trap.clear()
         if hasattr(builtins.__xonsh_shell__.shell.styler, 'style_name'):
             delattr(builtins.__xonsh_shell__.shell.styler, 'style_name')
     return enable

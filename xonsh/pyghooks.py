@@ -18,7 +18,7 @@ import pygments.util
 
 from xonsh.commands_cache import CommandsCache
 from xonsh.lazyasd import LazyObject, LazyDict, lazyobject
-from xonsh.tools import ON_WINDOWS, intensify_colors_for_cmd_exe
+from xonsh.tools import ON_WINDOWS, intensify_colors_for_cmd_exe, win_ansi_support
 from xonsh.color_tools import (RE_BACKGROUND, BASE_XONSH_COLORS, make_palette,
                                find_closest_color)
 from xonsh.style_tools import norm_name
@@ -436,7 +436,7 @@ class XonshStyle(Style):
         compound = CompoundColorMap(ChainMap(self.trap, cmap, PTK_STYLE, self._smap))
         self.styles = ChainMap(self.trap, cmap, PTK_STYLE, self._smap, compound)
         self._style_name = value
-        if ON_WINDOWS:
+        if ON_WINDOWS and 'prompt_toolkit' in builtins.__xonsh_shell__.shell_type:
             self.enhance_colors_for_cmd_exe()
 
     @style_name.deleter
@@ -450,10 +450,12 @@ class XonshStyle(Style):
         """
         env = builtins.__xonsh_env__
         # Ensure we are not using ConEmu
-        if 'CONEMUANSI' not in env:
-            if env.get('INTENSIFY_COLORS_ON_WIN', False):
-                newcolors = intensify_colors_for_cmd_exe(self._smap)
-                self._smap.update(newcolors)
+        if 'CONEMUANSI' in env:
+            return
+        if env.get('INTENSIFY_COLORS_ON_WIN', False):
+            newcolors = intensify_colors_for_cmd_exe(self.styles.parents)
+            self.styles = newcolors
+
 
 
 def xonsh_style_proxy(styler):

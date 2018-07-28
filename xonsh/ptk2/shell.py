@@ -23,6 +23,7 @@ from prompt_toolkit.history import ThreadedHistory
 from prompt_toolkit.shortcuts import print_formatted_text as ptk_print
 from prompt_toolkit.shortcuts import CompleteStyle
 from prompt_toolkit.shortcuts.prompt import PromptSession
+from prompt_toolkit.output.color_depth import ColorDepth
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.styles.pygments import (style_from_pygments_cls,
                                             style_from_pygments_dict)
