@@ -1666,10 +1666,7 @@ def _win10_color_map():
 WIN10_COLOR_MAP = LazyObject(_win10_color_map, globals(), 'WIN10_COLOR_MAP')
 
 def _win_bold_color_map():
-    """ Map dark ansi colors to lighter version.
-        This is way conhost on windows handles bold colors.
-        Dark colors are just upgraded to their intense counterpart
-    """
+    """ Map dark ansi colors to lighter version. """
     return {
         "#ansiblack": '#ansidarkgray',
         "#ansidarkblue": '#ansiblue',
@@ -1684,37 +1681,49 @@ def _win_bold_color_map():
 WIN_BOLD_COLOR_MAP = LazyObject(_win_bold_color_map, globals(), 'WIN_BOLD_COLOR_MAP')
 
 
+def hardcode_colors_for_win10(style_map):
+    """Replace all ansi colors with hardcoded colors to avoid unreadable defaults
+       in conhost.exe
+    """
+    modified_style = {}
+    if not builtins.__xonsh_env__['PROMPT_TOOLKIT_COLOR_DEPTH']:
+        builtins.__xonsh_env__['PROMPT_TOOLKIT_COLOR_DEPTH'] = 'DEPTH_24_BIT'
+    # Replace all ansi colors with hardcoded colors to avoid unreadable defaults
+    # in conhost.exe
+    for token, style_str in style_map.items():
+        for ansicolor in WIN10_COLOR_MAP:
+            if ansicolor in style_str:
+                if 'bold' in style_str and 'nobold' not in style_str:
+                    # Win10  doesn't yet handle bold colors. Instead dark
+                    # colors are mapped to their lighter version. We simulate
+                    # the same here.
+                    style_str.replace('bold','')
+                    hexcolor = WIN10_COLOR_MAP[WIN_BOLD_COLOR_MAP.get(ansicolor, ansicolor)]
+                else:
+                    hexcolor = WIN10_COLOR_MAP[ansicolor]
+                style_str = style_str.replace(ansicolor, hexcolor)
+                continue
+        modified_style[token] = style_str
+    return modified_style
+
 
 def intensify_colors_for_cmd_exe(style_map):
     """Returns a modified style to where colors that maps to dark
        colors are replaced with brighter versions.
     """
     modified_style = {}
-    if win_ansi_support():
-        if not builtins.__xonsh_env__['PROMPT_TOOLKIT_COLOR_DEPTH']:
-            builtins.__xonsh_env__['PROMPT_TOOLKIT_COLOR_DEPTH'] = 'DEPTH_24_BIT'
-        # Use hard coded colors to avoid unreadble 
-        # default colors in conhost
-        for token, sval in style_map.items():
-            for name in WIN10_COLOR_MAP:
-                if 'bold' in sval and 'nobold' not in sval:
-                    name = WIN_BOLD_COLOR_MAP.get(name, name)
-                hexcolor = WIN10_COLOR_MAP[name]
-                sval = sval.replace(name, hexcolor)
-            modified_style[token] = sval.replace(name, hexcolor)
-    else:
-        replace_colors = {
-            1: '#ansiturquoise',  # subst blue with bright cyan
-            2: '#ansigreen',      # subst green with bright green
-            4: '#ansired',        # subst red with bright red
-            5: '#ansifuchsia',    # subst magenta with bright magenta
-            6: '#ansiyellow',     # subst yellow with bright yellow
-            9: '#ansiteal',       # subst intense blue (hard to read)
-                                # with dark cyan (which is readable)
-        }
-        for token, idx, _ in _get_color_indexes(style_map):
-            if idx in replace_colors:
-                modified_style[token] = replace_colors[idx]
+    replace_colors = {
+        1: '#ansiturquoise',  # subst blue with bright cyan
+        2: '#ansigreen',      # subst green with bright green
+        4: '#ansired',        # subst red with bright red
+        5: '#ansifuchsia',    # subst magenta with bright magenta
+        6: '#ansiyellow',     # subst yellow with bright yellow
+        9: '#ansiteal',       # subst intense blue (hard to read)
+                            # with dark cyan (which is readable)
+    }
+    for token, idx, _ in _get_color_indexes(style_map):
+        if idx in replace_colors:
+            modified_style[token] = replace_colors[idx]
     return modified_style
 
 

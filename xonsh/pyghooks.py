@@ -18,7 +18,8 @@ import pygments.util
 
 from xonsh.commands_cache import CommandsCache
 from xonsh.lazyasd import LazyObject, LazyDict, lazyobject
-from xonsh.tools import ON_WINDOWS, intensify_colors_for_cmd_exe, win_ansi_support
+from xonsh.tools import (ON_WINDOWS, intensify_colors_for_cmd_exe, 
+                         hardcode_colors_for_win10, win_ansi_support)
 from xonsh.color_tools import (RE_BACKGROUND, BASE_XONSH_COLORS, make_palette,
                                find_closest_color)
 from xonsh.style_tools import norm_name
@@ -453,7 +454,10 @@ class XonshStyle(Style):
         if 'CONEMUANSI' in env or 'VSCODE' in env:
             return
         if env.get('INTENSIFY_COLORS_ON_WIN', False):
-            newcolors = intensify_colors_for_cmd_exe(self.styles.parents)
+            if win_ansi_support():
+                newcolors = hardcode_colors_for_win10(self.styles.parents)
+            else:
+                newcolors = intensify_colors_for_cmd_exe(self.styles.parents)
             self.styles = newcolors
 
 
