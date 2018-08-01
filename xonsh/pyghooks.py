@@ -449,8 +449,8 @@ class XonshStyle(Style):
             are changed to CYAN and intense red.
         """
         env = builtins.__xonsh_env__
-        # Ensure we are not using ConEmu
-        if 'CONEMUANSI' in env:
+        # Ensure we are not using ConEmu or Visual Stuio Code
+        if 'CONEMUANSI' in env or 'VSCODE' in env:
             return
         if env.get('INTENSIFY_COLORS_ON_WIN', False):
             newcolors = intensify_colors_for_cmd_exe(self.styles.parents)
